@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Sales</title>
+
+    <!-- Add some modern styles for a cleaner look -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        #sales-container {
+            margin-top: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* Add some responsive styles for smaller screens */
+        @media (max-width: 600px) {
+            table {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Sales Data</h2>
+
+    <div id="sales-container">
+        <!-- Sales data will be dynamically populated here using JavaScript -->
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Function to parse URL parameters
+            function getParameterByName(name, url) {
+                if (!url) url = window.location.href;
+                name = name.replace(/[\[\]]/g, "\\$&");
+                var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                    results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return "";
+                return decodeURIComponent(results[2].replace(/\+/g, " "));
+            }
+
+            // Fetch sales data from URL parameters
+            var salesDataJson = getParameterByName("sales_data");
+            var salesData = JSON.parse(salesDataJson);
+
+            // Get the sales container element
+            var salesContainer = document.getElementById("sales-container");
+
+            // Check if sales data is available
+            if (salesData && salesData.length > 0) {
+                // Create a table to display sales data
+                var table = document.createElement("table");
+
+                // Create table header
+                var headerRow = table.insertRow(0);
+                for (var key in salesData[0]) {
+                    var th = document.createElement("th");
+                    th.innerHTML = key;
+                    headerRow.appendChild(th);
+                }
+
+                // Create table rows with sales data
+                for (var i = 0; i < salesData.length; i++) {
+                    var row = table.insertRow(i + 1);
+                    for (var key in salesData[i]) {
+                        var cell = row.insertCell(-1);
+                        cell.innerHTML = salesData[i][key];
+                    }
+                }
+
+                // Append the table to the sales container
+                salesContainer.appendChild(table);
+            } else {
+                // Display a message if no sales data is available
+                salesContainer.innerHTML = "No sales data available.";
+            }
+        });
+    </script>
+
+</body>
+</html>
+
