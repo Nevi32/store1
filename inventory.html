@@ -212,7 +212,7 @@
       <a href="mpesa-c2b.html"><i class="fas fa-coins"></i> Mpesa C2B</a>
       <a href="mpesa-b2b.html"><i class="fas fa-exchange-alt"></i> Mpesa B2B</a>
       <a href="home.html" onclick="redirectToPage('home.html');"><i class="fas fa-home"></i> Dashboard</a>
-      <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+       <a href="#" id="logoutLink"><i class="fas fa-sign-out-alt"></i> Logout</a> 
     </div>
 
     <div id="content">
@@ -329,6 +329,13 @@
        // Redirect to fetchinventory.php when the "View Inventory" card is clicked
        window.location.href = 'fetchinventory.php';
      }
+       document.getElementById('logoutLink').addEventListener('click', function(event) {
+    // Prevent the default behavior of the link
+    event.preventDefault();
+
+    // Redirect the user to the logout.php file for logout
+    window.location.href = 'logout.php';
+  });
   </script>
 
 </body>

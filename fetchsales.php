@@ -1,6 +1,8 @@
 <?php
 include 'config.php';
 
+session_start();
+
 try {
     $pdo = new PDO("mysql:host={$databaseConfig['host']};dbname={$databaseConfig['dbname']}", $databaseConfig['user'], $databaseConfig['password']);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -12,13 +14,10 @@ try {
 
     $salesStmt = $pdo->prepare($salesQuery);
     $salesStmt->execute();
-    $salesData = $salesStmt->fetchAll(PDO::FETCH_ASSOC);
+    $_SESSION['sales_data'] = $salesStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Encode sales data in JSON format
-    $jsonSalesData = json_encode($salesData);
-
-    // Redirect to viewsales.html with sales data as URL parameters
-    header('Location: viewsales.html?sales_data=' . urlencode($jsonSalesData));
+    // Redirect to viewsales.html
+    header('Location: viewsales.php');
     exit();
 } catch (PDOException $e) {
     echo "Error fetching sales data: " . $e->getMessage();

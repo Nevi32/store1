@@ -1,11 +1,12 @@
 <?php
-$hostname = "localhost";
-$database = "store3";
-$username = "nevill";
-$password = "7683Nev!//";
+// Include the configuration file
+include 'config.php';
+
+session_start();
 
 try {
-    $pdo = new PDO("mysql:host=$hostname;dbname=$database", $username, $password);
+    // Create a PDO connection using the configuration from config.php
+    $pdo = new PDO("mysql:host={$databaseConfig['host']};dbname={$databaseConfig['dbname']}", $databaseConfig['user'], $databaseConfig['password']);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Fetch summarized main entry data
@@ -14,7 +15,7 @@ try {
 
     $mainEntryStmt = $pdo->prepare($mainEntryQuery);
     $mainEntryStmt->execute();
-    $mainEntryData = $mainEntryStmt->fetchAll(PDO::FETCH_ASSOC);
+    $_SESSION['main_entry_data'] = $mainEntryStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Fetch detailed individual entry data from inventory
     $detailedEntryQuery = "SELECT main_entry_id, quantity, quantity_description, price, record_date
@@ -22,14 +23,10 @@ try {
 
     $detailedEntryStmt = $pdo->prepare($detailedEntryQuery);
     $detailedEntryStmt->execute();
-    $detailedEntryData = $detailedEntryStmt->fetchAll(PDO::FETCH_ASSOC);
+    $_SESSION['detailed_entry_data'] = $detailedEntryStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Encode both sets of data in JSON format
-    $jsonMainEntryData = json_encode($mainEntryData);
-    $jsonDetailedEntryData = json_encode($detailedEntryData);
-
-    // Redirect to viewinventory.html with the data as URL parameters
-    header('Location: viewinventory.html?main_entry_data=' . urlencode($jsonMainEntryData) . '&detailed_entry_data=' . urlencode($jsonDetailedEntryData));
+    // Redirect to viewinventory.html
+    header('Location: viewinventory.php');
     exit();
 
 } catch (PDOException $e) {

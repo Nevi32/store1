@@ -16,13 +16,15 @@ $stmt = $pdo->prepare($query);
 $stmt->execute();
 $latestNotifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Encode the notifications into a JavaScript variable
-$notificationsScript = 'var latestNotifications = ' . json_encode($latestNotifications) . ';';
+// Start a session and store the data in a session variable
+session_start();
+$_SESSION['latestNotifications'] = $latestNotifications;
 
 // Close the database connection
 $pdo = null;
 
-// Output the JavaScript script
-echo $notificationsScript;
+// Redirect to notifications.php
+header('Location: notifications.php');
+exit();
 ?>
 
