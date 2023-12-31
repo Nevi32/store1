@@ -8,11 +8,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <link rel="stylesheet" href="styles.css"> <!-- Link to your external CSS file -->
     <style>
-        body,
-        html {
+        body, html {
             height: 100%;
             margin: 0;
             font-family: 'Arial', sans-serif;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
         }
 
         #dashboard {
@@ -88,13 +98,8 @@
             background-color: #eee;
         }
 
-        .salary-payments {
+        .salary-payments, .stock-orders, .suppliers-card {
             background-color: #3498db;
-            color: #fff;
-        }
-
-        .stock-orders {
-            background-color: #2ecc71;
             color: #fff;
         }
 
@@ -108,30 +113,66 @@
             font-size: 1em;
         }
 
-        .card-form {
+        .popup-form {
             display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            background: #fff;
+            border-radius: 10px;
             padding: 20px;
             box-sizing: border-box;
             text-align: left;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
         }
 
-        .close-form {
+        .close-popup {
             position: absolute;
             top: 10px;
             right: 10px;
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #333;
+            z-index: 9999;
+        }
+
+        .popup-form h4 {
+            margin-top: 0;
+        }
+
+        .popup-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .popup-form input,
+        .popup-form textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .popup-form button {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
         }
     </style>
 </head>
 
 <body>
+    <div class="overlay" onclick="closeAllForms();"></div>
 
     <div id="dashboard">
         <div id="sidebar">
@@ -153,9 +194,10 @@
                     <h3>Salary Payments</h3>
                     <p>Make salary payments to staff.</p>
                     <!-- Placeholder form fields -->
-                    <div class="card-form" id="salary-form">
-                        <span class="close-form" onclick="toggleCardForm('salary-form');">&times;</span>
-                        <form action="salary_payment.php" method="post">
+                    <div class="popup-form" id="salary-form">
+                        <div class="close-popup" onclick="toggleCardForm('salary-form');"><span>&times;</span></div>
+                        <h4>Enter Salary Payment Details</h4>
+                        <form action="recordsalary.php" method="post">
                             <label for="staff">Select Staff:</label>
                             <select id="staff" name="staff" multiple>
                                 <option value="Staff 1">Staff 1</option>
@@ -177,9 +219,10 @@
                     <h3>Stock Orders</h3>
                     <p>Place orders for your stock.</p>
                     <!-- Placeholder form fields -->
-                    <div class="card-form" id="orders-form">
-                        <span class="close-form" onclick="toggleCardForm('orders-form');">&times;</span>
-                        <form action="stock_orders.php" method="post">
+                    <div class="popup-form" id="orders-form">
+                        <div class="close-popup" onclick="toggleCardForm('orders-form');"><span>&times;</span></div>
+                        <h4>Enter Stock Order Details</h4>
+                        <form action="recordstockorder.php" method="post">
                             <label for="supplier">Select Supplier:</label>
                             <select id="supplier" name="supplier" multiple>
                                 <option value="Supplier 1">Supplier 1</option>
@@ -192,6 +235,30 @@
                             <br>
                             <label for="product">Product:</label>
                             <input type="text" id="product" name="product" required>
+                            <br>
+                            <button type="submit">Submit</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card suppliers-card" onclick="toggleCardForm('suppliers-form');">
+                    <h3>Suppliers</h3>
+                    <p>Manage your suppliers.</p>
+                    <!-- Placeholder form fields -->
+                    <div class="popup-form" id="suppliers-form">
+                        <div class="close-popup" onclick="toggleCardForm('suppliers-form');"><span>&times;</span></div>
+                        <h4>Enter Supplier Details</h4>
+                        <form action="recordsuppliers.php" method="post">
+                            <label for="supplierName">Supplier Name:</label>
+                            <input type="text" id="supplierName" name="supplierName" required>
+                            <br>
+                            <label for="phoneNumber">Phone Number:</label>
+                            <input type="tel" id="phoneNumber" name="phoneNumber" required>
+                            <br>
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" name="email">
+                            <br>
+                            <label for="address">Address:</label>
+                            <textarea id="address" name="address"></textarea>
                             <br>
                             <button type="submit">Submit</button>
                         </form>
@@ -211,14 +278,30 @@
     </div>
 
     <script>
-        // ... (existing JavaScript code)
-
         function toggleCardForm(formId) {
             var cardForm = document.getElementById(formId);
-            cardForm.style.display = (cardForm.style.display === 'none') ? 'block' : 'none';
+            var overlay = document.querySelector('.overlay');
+
+            if (cardForm.style.display === 'none') {
+                cardForm.style.display = 'block';
+                overlay.style.display = 'block';
+            } else {
+                cardForm.style.display = 'none';
+                overlay.style.display = 'none';
+            }
+        }
+
+        function closeAllForms() {
+            var forms = document.querySelectorAll('.popup-form');
+            var overlay = document.querySelector('.overlay');
+
+            forms.forEach(function (form) {
+                form.style.display = 'none';
+            });
+
+            overlay.style.display = 'none';
         }
     </script>
-
 </body>
 
 </html>
