@@ -93,12 +93,13 @@
             cursor: pointer;
             transition: background-color 0.3s ease-in-out;
         }
-
         .card:hover {
             background-color: #eee;
         }
 
-        .salary-payments, .stock-orders, .suppliers-card {
+        .salary-payments,
+        .stock-orders,
+        .suppliers-card {
             background-color: #3498db;
             color: #fff;
         }
@@ -138,7 +139,6 @@
             color: #333;
             z-index: 9999;
         }
-
         .popup-form h4 {
             margin-top: 0;
         }
@@ -168,12 +168,23 @@
             border-radius: 5px;
             cursor: pointer;
         }
+        .notification {
+            display: none;
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+        }
     </style>
 </head>
 
 <body>
-    <div class="overlay" onclick="closeAllForms();"></div>
-
+    <div class="overlay" onclick="closeAllForms(event);"></div>
     <div id="dashboard">
         <div id="sidebar">
             <div class="welcome-message" id="welcome-message"></div>
@@ -190,19 +201,17 @@
 
         <div id="content">
             <div class="row">
-                <div class="card salary-payments" onclick="toggleCardForm('salary-form');">
+                <div class="card salary-payments" onclick="fetchStaffInfoAndToggleForm();">
                     <h3>Salary Payments</h3>
                     <p>Make salary payments to staff.</p>
                     <!-- Placeholder form fields -->
-                    <div class="popup-form" id="salary-form">
+                    <div class="popup-form" id="salary-form" onclick="event.stopPropagation();">
                         <div class="close-popup" onclick="toggleCardForm('salary-form');"><span>&times;</span></div>
                         <h4>Enter Salary Payment Details</h4>
-                        <form action="recordsalary.php" method="post">
+                        <form id="salary-form-id" action="recordsalary.php" method="post">
                             <label for="staff">Select Staff:</label>
                             <select id="staff" name="staff" multiple>
-                                <option value="Staff 1">Staff 1</option>
-                                <option value="Staff 2">Staff 2</option>
-                                <option value="Staff 3">Staff 3</option>
+                
                             </select>
                             <br>
                             <label for="amount">Amount:</label>
@@ -215,26 +224,21 @@
                         </form>
                     </div>
                 </div>
-                <div class="card stock-orders" onclick="toggleCardForm('orders-form');">
+                <div class="card stock-orders" onclick="fetchSuppliersInfoAndToggleForm();;">
                     <h3>Stock Orders</h3>
                     <p>Place orders for your stock.</p>
-                    <!-- Placeholder form fields -->
-                    <div class="popup-form" id="orders-form">
+                    <!-- Updated form fields -->
+                    <div class="popup-form" id="orders-form" onclick="event.stopPropagation();">
                         <div class="close-popup" onclick="toggleCardForm('orders-form');"><span>&times;</span></div>
                         <h4>Enter Stock Order Details</h4>
-                        <form action="recordstockorder.php" method="post">
+                        <form id="orders-form-id" action="recordstock.php" method="post">
                             <label for="supplier">Select Supplier:</label>
-                            <select id="supplier" name="supplier" multiple>
-                                <option value="Supplier 1">Supplier 1</option>
-                                <option value="Supplier 2">Supplier 2</option>
-                                <option value="Supplier 3">Supplier 3</option>
+                            <select id="supplier" name="supplier" required>
+                                <!-- Options will be populated dynamically using JavaScript -->
                             </select>
                             <br>
-                            <label for="quantity">Quantity:</label>
-                            <input type="number" id="quantity" name="quantity" required>
-                            <br>
-                            <label for="product">Product:</label>
-                            <input type="text" id="product" name="product" required>
+                            <label for="amount">Amount:</label>
+                            <input type="number" id="amount" name="amount" required>
                             <br>
                             <button type="submit">Submit</button>
                         </form>
@@ -244,10 +248,10 @@
                     <h3>Suppliers</h3>
                     <p>Manage your suppliers.</p>
                     <!-- Placeholder form fields -->
-                    <div class="popup-form" id="suppliers-form">
+                    <div class="popup-form" id="suppliers-form" onclick="event.stopPropagation();">
                         <div class="close-popup" onclick="toggleCardForm('suppliers-form');"><span>&times;</span></div>
                         <h4>Enter Supplier Details</h4>
-                        <form action="recordsuppliers.php" method="post">
+                        <form id="suppliers-form-id" action="recordsuppliers.php" method="post">
                             <label for="supplierName">Supplier Name:</label>
                             <input type="text" id="supplierName" name="supplierName" required>
                             <br>
@@ -276,7 +280,7 @@
             </div>
         </div>
     </div>
-
+    <div class="notification" id="serverNotification"></div>
     <script>
         function toggleCardForm(formId) {
             var cardForm = document.getElementById(formId);
@@ -290,19 +294,133 @@
                 overlay.style.display = 'none';
             }
         }
+        function fetchStaffInfoAndToggleForm() {
+        // Fetch staff information from fetchstaffinfo.php
+        fetch('fetchstaffinfo.php')
+            .then(response => response.json())
+            .then(data => {
+                // Populate supplier options in the form
+                populateStaffOptions(data);
 
-        function closeAllForms() {
+                // Toggle the stock orders form
+                toggleCardForm('salary-form');
+            })
+            .catch(error => console.error('Error fetching staff info:', error));
+        }
+
+        function populateStaffOptions(staff) {
+            const supplierSelect = document.getElementById('staff');
+
+            // Clear existing options
+            supplierSelect.innerHTML = '';
+
+            // Add new options based on fetched data
+            staff.forEach(staff => {
+                const option = document.createElement('option');
+                option.value = users.user_id;
+                option.textContent = users.full_name;
+                supplierSelect.appendChild(option);
+            });
+        }
+
+        function fetchSuppliersInfoAndToggleForm() {
+        // Fetch supplier information from fetchsuppliersinfo.php
+        fetch('fetchsuppliersinfo.php')
+            .then(response => response.json())
+            .then(data => {
+                // Populate supplier options in the form
+                populateSupplierOptions(data);
+
+                // Toggle the stock orders form
+                toggleCardForm('orders-form');
+            })
+            .catch(error => console.error('Error fetching suppliers info:', error));
+    }
+
+        function populateSupplierOptions(suppliers) {
+            const supplierSelect = document.getElementById('supplier');
+
+            // Clear existing options
+            supplierSelect.innerHTML = '';
+
+            // Add new options based on fetched data
+            suppliers.forEach(supplier => {
+                const option = document.createElement('option');
+                option.value = supplier.supplier_id;
+                option.textContent = supplier.supplier_name;
+                option.value = supplier.phone_number;
+                supplierSelect.appendChild(option);
+            });
+        }
+        function closeAllForms(event) {
             var forms = document.querySelectorAll('.popup-form');
             var overlay = document.querySelector('.overlay');
+            
+            if (event.target === overlay) {
+                forms.forEach(function (form) {
+                    form.style.display = 'none';
+                });
 
-            forms.forEach(function (form) {
-                form.style.display = 'none';
+                overlay.style.display = 'none';
+            }
+        }
+
+        function showNotification(message, isSuccess) {
+            var notification = document.getElementById('serverNotification');
+            notification.textContent = message;
+
+            if (isSuccess) {
+                notification.style.backgroundColor = '#4CAF50';
+            } else {
+                notification.style.backgroundColor = '#e74c3c';
+            }
+
+            notification.style.display = 'block';
+
+            // Hide the notification after a delay (e.g., 3 seconds)
+            setTimeout(function () {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Assuming you have a form with id "salary-form-id", "orders-form-id", "suppliers-form-id"
+        document.getElementById('salary-form-id').addEventListener('submit', function (event) {
+            handleFormSubmission(event, 'recordsalary.php');
+        });
+
+        document.getElementById('orders-form-id').addEventListener('submit', function (event) {
+            handleFormSubmission(event, 'recordstock.php');
+        });
+
+        document.getElementById('suppliers-form-id').addEventListener('submit', function (event) {
+            handleFormSubmission(event, 'recordsuppliers.php');
+        });
+
+        function handleFormSubmission(event, phpScript) {
+            event.preventDefault();
+
+            // Your existing form submission logic
+            // ...
+
+            // Example handling of the server response
+            fetch(phpScript, {
+                method: 'POST',
+                body: new FormData(event.target),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showNotification(data.message, true);
+                } else {
+                    showNotification(data.message, false);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Handle error if needed
             });
-
-            overlay.style.display = 'none';
         }
     </script>
 </body>
 
 </html>
-

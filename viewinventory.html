@@ -7,8 +7,57 @@
     <title>View Inventory</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <style>
-        /* ... (existing styles) */
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+        }
 
+        #dashboard {
+            display: flex;
+            height: 100%;
+        }
+
+        #sidebar {
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+
+        #sidebar a {
+            color: #fff;
+            text-decoration: none;
+            margin-bottom: 15px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        #sidebar i {
+            margin-right: 10px;
+        }
+
+        #sidebar a:not(:last-child) {
+            margin-bottom: 60px;
+        }
+
+        #user-info {
+            display: none;
+            color: #fff;
+            margin-top: 5px;
+            padding: 10px;
+            background-color: #555;
+            border-radius: 15px;
+        }
+        #content {
+            flex: 1;
+            padding: 20px;
+        }
         #main-entry-table-container {
             margin-top: 20px;
         }
@@ -93,17 +142,25 @@
 </head>
 
 <body>
-
-    <div id="inventory-page">
+    <div id="dashboard">
         <div id="sidebar">
-            <!-- ... (existing sidebar content) -->
+            <div class="welcome-message" id="welcome-message"></div>
+            <a href="#" id="user-icon" onclick="toggleUserInfo();"><i class="fas fa-user"></i> User</a>
+            <div id="user-info">
+                <!-- User info will be displayed here using JavaScript -->
+            </div>
+            <a href="notifications.html"><i class="fas fa-bell"></i> Notifications</a>
+            <a href="mpesa-c2b.html"><i class="fas fa-coins"></i> Mpesa C2B</a>
+            <a href="mpesa-b2b.html"><i class="fas fa-exchange-alt"></i> Mpesa B2B</a>
+            <a href="home.html" onclick="redirectToPage('home.html');"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>
 
         <div id="content">
             <div class="alert" id="alert-message"></div>
 
             <div id="main-entry-table-container">
-                <h3>Main Entry Information</h3>
+                <h3>Store inventory Information</h3>
                 <table id="main-entry-table">
                     <thead>
                         <tr>
@@ -136,55 +193,55 @@
                 </div>
             </div>
 
-     <script>
-      function viewInventory() {
-        // Retrieve URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const mainEntryDataParam = urlParams.get('main_entry_data');
-        const detailedEntryDataParam = urlParams.get('detailed_entry_data');
-
-        // Check if main entry data parameter is present
-        if (mainEntryDataParam) {
-            try {
-                // Parse JSON data
-                const mainEntryData = JSON.parse(decodeURIComponent(mainEntryDataParam));
-
-                // Update the content of the current page with the main entry data
-                displayMainEntryData(mainEntryData);
-
-                // Display more info button for each main entry
-                addMoreInfoButtons(mainEntryData);
-            } catch (error) {
-                showAlert('Error parsing main entry data: ' + error.message);
-            }
-        } else {
-            showAlert('No main entry data available.');
-        }
-
-        // Check if detailed entry data parameter is present
-        if (detailedEntryDataParam) {
-            try {
-                // Parse JSON data
-                const detailedEntryData = JSON.parse(decodeURIComponent(detailedEntryDataParam));
-
-                // Store detailed entry data for later use
-                window.detailedEntryData = detailedEntryData;
-            } catch (error) {
-                showAlert('Error parsing detailed entry data: ' + error.message);
-            }
-        }
-    }
-
-    function displayMainEntryData(mainEntryData) {
-        // Display main entry data in a table
-        var tableBody = document.querySelector('#main-entry-table-body');
-        tableBody.innerHTML = ''; // Clear existing table content
-
-        mainEntryData.forEach(function (entry) {
-            var row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${entry.product_name}</td>
-                <td>${entry.category}</td>
+            <script>
+                function viewInventory() {
+                  // Retrieve URL parameters
+                  const urlParams = new URLSearchParams(window.location.search);
+                  const mainEntryDataParam = urlParams.get('main_entry_data');
+                  const detailedEntryDataParam = urlParams.get('detailed_entry_data');
+          
+                  // Check if main entry data parameter is present
+                  if (mainEntryDataParam) {
+                      try {
+                          // Parse JSON data
+                          const mainEntryData = JSON.parse(decodeURIComponent(mainEntryDataParam));
+          
+                          // Update the content of the current page with the main entry data
+                          displayMainEntryData(mainEntryData);
+          
+                          // Display more info button for each main entry
+                          addMoreInfoButtons(mainEntryData);
+                      } catch (error) {
+                          showAlert('Error parsing main entry data: ' + error.message);
+                      }
+                  } else {
+                      showAlert('No main entry data available.');
+                  }
+          
+                  // Check if detailed entry data parameter is present
+                  if (detailedEntryDataParam) {
+                      try {
+                          // Parse JSON data
+                          const detailedEntryData = JSON.parse(decodeURIComponent(detailedEntryDataParam));
+          
+                          // Store detailed entry data for later use
+                          window.detailedEntryData = detailedEntryData;
+                      } catch (error) {
+                          showAlert('Error parsing detailed entry data: ' + error.message);
+                      }
+                  }
+              }
+          
+              function displayMainEntryData(mainEntryData) {
+                  // Display main entry data in a table
+                  var tableBody = document.querySelector('#main-entry-table-body');
+                  tableBody.innerHTML = ''; // Clear existing table content
+          
+                  mainEntryData.forEach(function (entry) {
+                      var row = document.createElement('tr');
+                      row.innerHTML = `
+                          <td>${entry.product_name}</td>
+                          <td>${entry.category}</td>
                 <td>${entry.total_quantity}</td>
                 <td>${entry.quantity_description}</td>
                 <td><button class="more-info-button" onclick="showDetailedEntries(${entry.main_entry_id})">More Info</button></td>
@@ -233,20 +290,20 @@
         document.getElementById('detailed-entries-modal').style.display = 'block';
     }
 
-    function closeModal() {
-        // Close the modal
-        document.getElementById('detailed-entries-modal').style.display = 'none';
-    }
+function closeModal() {
+    // Close the modal
+    document.getElementById('detailed-entries-modal').style.display = 'none';
+}
 
-    // Call viewInventory when the page is loaded
-    document.addEventListener('DOMContentLoaded', function () {
-        viewInventory();
-    });
- </script>
-        </div>
+// Call viewInventory when the page is loaded
+document.addEventListener('DOMContentLoaded', function () {
+    viewInventory();
+});
+</script>
     </div>
+</div>
 
 </body>
 
-</html>
-
+</html>        
+      

@@ -1,73 +1,207 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Sales</title>
-
-    <!-- Add some modern styles for a cleaner look -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f4;
+        body, html {
+            height: 100%;
             margin: 0;
-            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        #dashboard {
+            display: flex;
+            height: 100%;
+        }
+
+        #sidebar {
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
             display: flex;
             flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+
+        #sidebar a {
+            color: #fff;
+            text-decoration: none;
+            margin-bottom: 15px;
+            width: 100%;
+            display: flex;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
-            text-align: center;
         }
 
-        h2 {
-            color: #333;
+        #sidebar i {
+            margin-right: 10px;
         }
 
-        #sales-container {
-            margin-top: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        #sidebar a:not(:last-child) {
+            margin-bottom: 60px;
+        }
+
+        #user-info {
+            display: none;
+            color: #fff;
+            margin-top: 5px;
+            padding: 10px;
+            background-color: #555;
+            border-radius: 15px;
+        }
+
+        #content {
+            flex: 1;
             padding: 20px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .alert {
+            /* Your alert styles here */
+        }
+
+        #main-entry-table-container {
             margin-top: 20px;
         }
 
-        th, td {
+        #main-entry-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        #main-entry-table th,
+        #main-entry-table td {
             border: 1px solid #ddd;
-            padding: 10px;
+            padding: 8px;
             text-align: left;
         }
 
-        th {
-            background-color: #f2f2f2;
+        #main-entry-table th {
+            background-color: #3498db;
+            color: #fff;
         }
 
-        /* Add some responsive styles for smaller screens */
-        @media (max-width: 600px) {
-            table {
-                font-size: 14px;
-            }
+        .more-info-button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 12px;
+            margin: 2px 2px;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-header {
+            padding: 2px 16px;
+            background-color: #5cb85c;
+            color: white;
+        }
+
+        .modal-body {
+            padding: 2px 16px;
         }
     </style>
 </head>
+
 <body>
 
-    <h2>Sales Data</h2>
+    <div id="dashboard">
+        <div id="sidebar">
+            <div class="welcome-message" id="welcome-message"></div>
+            <a href="#" id="user-icon" onclick="toggleUserInfo();"><i class="fas fa-user"></i> User</a>
+            <div id="user-info">
+                <!-- User info will be displayed here using JavaScript -->
+            </div>
+            <a href="notifications.html"><i class="fas fa-bell"></i> Notifications</a>
+            <a href="mpesa-c2b.html"><i class="fas fa-coins"></i> Mpesa C2B</a>
+            <a href="mpesa-b2b.html"><i class="fas fa-exchange-alt"></i> Mpesa B2B</a>
+            <a href="home.html" onclick="redirectToPage('home.html');"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
 
-    <div id="sales-container">
-        <!-- Sales data will be dynamically populated here using JavaScript -->
-    </div>
+        <div id="content">
+            <div class="alert" id="alert-message"></div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
+            <div id="main-entry-table-container">
+                <h3>Main Entry Information</h3>
+                <table id="main-entry-table">
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Total Quantity</th>
+                            <th>Quantity Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="main-entry-table-body">
+                        <!-- Main entry data will be dynamically inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="more-info-buttons">
+                <!-- More Info buttons will be dynamically inserted here -->
+            </div>
+
+            <div id="detailed-entries-modal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <span class="close" onclick="closeModal()">&times;</span>
+                        <h2>Detailed Entries</h2>
+                    </div>
+                    <div class="modal-body" id="modal-body-content">
+                        <!-- Detailed entry data will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
             // Function to parse URL parameters
             function getParameterByName(name, url) {
                 if (!url) url = window.location.href;
@@ -114,9 +248,14 @@
                 // Display a message if no sales data is available
                 salesContainer.innerHTML = "No sales data available.";
             }
-        });
-    </script>
+            });
+
+                
+            </script>
+        </div>
+    </div>
 
 </body>
+
 </html>
 
