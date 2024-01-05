@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Inventory</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    
     <style>
         body, html {
             height: 100%;
@@ -54,10 +55,12 @@
             background-color: #555;
             border-radius: 15px;
         }
+
         #content {
             flex: 1;
             padding: 20px;
         }
+
         #main-entry-table-container {
             margin-top: 20px;
         }
@@ -138,6 +141,19 @@
         .modal-body {
             padding: 2px 16px;
         }
+
+        #search-bar {
+            margin-top: 20px;
+        }
+        #search-bar label {
+            margin-right: 10px;
+        }
+        #search-bar input {
+            margin-right: 10px;
+        }
+        #search-bar button {
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -159,8 +175,15 @@
         <div id="content">
             <div class="alert" id="alert-message"></div>
 
+            <!-- Add the search bar -->
+            <div id="search-bar">
+                <label for="product-search">Search Product:</label>
+                <input type="text" id="product-search" placeholder="Enter product name">
+                <button onclick="searchProduct()">Search</button>
+            </div>
+
             <div id="main-entry-table-container">
-                <h3>Store inventory Information</h3>
+                <h3>Store Inventory Information</h3>
                 <table id="main-entry-table">
                     <thead>
                         <tr>
@@ -177,10 +200,6 @@
                 </table>
             </div>
 
-            <div id="more-info-buttons">
-                <!-- More Info buttons will be dynamically inserted here -->
-            </div>
-
             <div id="detailed-entries-modal" class="modal">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -194,116 +213,122 @@
             </div>
 
             <script>
+                let mainEntryData;
+
                 function viewInventory() {
-                  // Retrieve URL parameters
-                  const urlParams = new URLSearchParams(window.location.search);
-                  const mainEntryDataParam = urlParams.get('main_entry_data');
-                  const detailedEntryDataParam = urlParams.get('detailed_entry_data');
-          
-                  // Check if main entry data parameter is present
-                  if (mainEntryDataParam) {
-                      try {
-                          // Parse JSON data
-                          const mainEntryData = JSON.parse(decodeURIComponent(mainEntryDataParam));
-          
-                          // Update the content of the current page with the main entry data
-                          displayMainEntryData(mainEntryData);
-          
-                          // Display more info button for each main entry
-                          addMoreInfoButtons(mainEntryData);
-                      } catch (error) {
-                          showAlert('Error parsing main entry data: ' + error.message);
-                      }
-                  } else {
-                      showAlert('No main entry data available.');
-                  }
-          
-                  // Check if detailed entry data parameter is present
-                  if (detailedEntryDataParam) {
-                      try {
-                          // Parse JSON data
-                          const detailedEntryData = JSON.parse(decodeURIComponent(detailedEntryDataParam));
-          
-                          // Store detailed entry data for later use
-                          window.detailedEntryData = detailedEntryData;
-                      } catch (error) {
-                          showAlert('Error parsing detailed entry data: ' + error.message);
-                      }
-                  }
-              }
-          
-              function displayMainEntryData(mainEntryData) {
-                  // Display main entry data in a table
-                  var tableBody = document.querySelector('#main-entry-table-body');
-                  tableBody.innerHTML = ''; // Clear existing table content
-          
-                  mainEntryData.forEach(function (entry) {
-                      var row = document.createElement('tr');
-                      row.innerHTML = `
-                          <td>${entry.product_name}</td>
-                          <td>${entry.category}</td>
-                <td>${entry.total_quantity}</td>
-                <td>${entry.quantity_description}</td>
-                <td><button class="more-info-button" onclick="showDetailedEntries(${entry.main_entry_id})">More Info</button></td>
-            `;
-            tableBody.appendChild(row);
-        });
-    }
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const mainEntryDataParam = urlParams.get('main_entry_data');
+                    const detailedEntryDataParam = urlParams.get('detailed_entry_data');
 
-    function addMoreInfoButtons(mainEntryData) {
-        // Add more info buttons for each main entry
-        var moreInfoButtonsContainer = document.getElementById('more-info-buttons');
-        moreInfoButtonsContainer.innerHTML = '';
+                    // Check if main entry data parameter is present
+                    if (mainEntryDataParam) {
+                        try {
+                            // Parse JSON data
+                            mainEntryData = JSON.parse(decodeURIComponent(mainEntryDataParam));
 
-        mainEntryData.forEach(function (entry) {
-            var button = document.createElement('button');
-            button.innerText = `More Info: ${entry.product_name} - ${entry.category}`;
-            button.onclick = function () {
-                showDetailedEntries(entry.main_entry_id);
-            };
-            moreInfoButtonsContainer.appendChild(button);
-        });
-    }
+                            // Update the content of the current page with the main entry data
+                            displayMainEntryData(mainEntryData);
 
-    function showDetailedEntries(mainEntryId) {
-        // Retrieve detailed entries for the selected main entry ID
-        const detailedEntries = window.detailedEntryData.filter(function (entry) {
-            return entry.main_entry_id === mainEntryId;
-        });
+                            // Display more info button for each main entry
+                            addMoreInfoButtons(mainEntryData);
+                        } catch (error) {
+                            showAlert('Error parsing main entry data: ' + error.message);
+                        }
+                    } else {
+                        showAlert('No main entry data available.');
+                    }
 
-        // Display detailed entries in a modal
-        var modalBody = document.querySelector('#modal-body-content');
-        modalBody.innerHTML = ''; // Clear existing modal content
+                    if (detailedEntryDataParam) {
+                        try {
+                            // Parse JSON data
+                            const detailedEntryData = JSON.parse(decodeURIComponent(detailedEntryDataParam));
 
-        detailedEntries.forEach(function (entry) {
-            var row = document.createElement('div');
-            row.innerHTML = `
-                <p>Quantity: ${entry.quantity}</p>
-                <p>Quantity Description: ${entry.quantity_description}</p>
-                <p>Price: ${entry.price !== null ? entry.price : 'N/A'}</p>
-                <p>Date: ${entry.record_date}</p>
-            `;
-            modalBody.appendChild(row);
-        });
+                            // Store detailed entry data for later use
+                            window.detailedEntryData = detailedEntryData;
+                        } catch (error) {
+                            showAlert('Error parsing detailed entry data: ' + error.message);
+                        }
+                    }
+                }
 
-        // Show the modal
-        document.getElementById('detailed-entries-modal').style.display = 'block';
-    }
+                function displayMainEntryData(mainEntryData, searchTerm) {
+                    // Display main entry data in a table
+                    var tableBody = document.querySelector('#main-entry-table-body');
+                    tableBody.innerHTML = ''; // Clear existing table content
 
-function closeModal() {
-    // Close the modal
-    document.getElementById('detailed-entries-modal').style.display = 'none';
-}
+                    mainEntryData.forEach(function (entry) {
+                        // Check if the product name contains the search term (case-insensitive)
+                        if (!searchTerm || entry.product_name.toLowerCase().includes(searchTerm.toLowerCase())) {
+                            var row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${entry.product_name}</td>
+                                <td>${entry.category}</td>
+                                <td>${entry.total_quantity}</td>
+                                <td>${entry.quantity_description}</td>
+                                <td><button class="more-info-button" onclick="showDetailedEntries(${entry.main_entry_id})">More Info</button></td>
+                            `;
+                            tableBody.appendChild(row);
+                        }
+                    });
+                }
 
-// Call viewInventory when the page is loaded
-document.addEventListener('DOMContentLoaded', function () {
-    viewInventory();
-});
-</script>
+                function addMoreInfoButtons(mainEntryData) {
+                    // Add more info buttons for each main entry
+                    // (Removed as per your request since they are unnecessary)
+                }
+
+                function showDetailedEntries(mainEntryId) {
+                    // Retrieve detailed entries for the selected main entry ID
+                    const detailedEntries = window.detailedEntryData.filter(function (entry) {
+                        return entry.main_entry_id === mainEntryId;
+                    });
+
+                    // Display detailed entries in a modal
+                    var modalBody = document.querySelector('#modal-body-content');
+                    modalBody.innerHTML = ''; // Clear existing modal content
+
+                    detailedEntries.forEach(function (entry) {
+                        var row = document.createElement('div');
+                        row.innerHTML = `
+                            <p>Quantity: ${entry.quantity}</p>
+                            <p>Quantity Description: ${entry.quantity_description}</p>
+                            <p>Price: ${entry.price !== null ? entry.price : 'N/A'}</p>
+                            <p>Date: ${entry.record_date}</p>
+                        `;
+                        modalBody.appendChild(row);
+                    });
+
+                    // Show the modal
+                    document.getElementById('detailed-entries-modal').style.display = 'block';
+                }
+
+                function closeModal() {
+                    // Close the modal
+                    document.getElementById('detailed-entries-modal').style.display = 'none';
+                }
+
+                // Call viewInventory when the page is loaded
+                document.addEventListener('DOMContentLoaded', function () {
+                    viewInventory();
+                });
+
+                // Add the searchProduct function
+                function searchProduct() {
+                    // Get the search input value
+                    var searchInput = document.getElementById('product-search').value;
+
+                    // Display main entry data based on the search input
+                    displayMainEntryData(mainEntryData, searchInput);
+                }
+
+                // Call viewInventory when the page is loaded
+                document.addEventListener('DOMContentLoaded', function () {
+                    viewInventory();
+                });
+            </script>
+        </div>
     </div>
-</div>
-
 </body>
 
-</html>        
-      
+</html>
+
