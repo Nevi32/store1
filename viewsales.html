@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Sales</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
     <style>
         body, html {
             height: 100%;
@@ -15,11 +16,11 @@
 
         #dashboard {
             display: flex;
-            height: 100%;
+            height: 100vh; /* Use viewport height to make sure the layout covers the entire screen */
         }
 
         #sidebar {
-            width: 200px;
+            width: 150px;
             background-color: #333;
             color: #fff;
             padding: 20px;
@@ -27,6 +28,14 @@
             flex-direction: column;
             align-items: flex-start;
             justify-content: flex-start;
+            position: fixed; /* Fix the sidebar position */
+            height: 100%;
+        }
+
+        #content {
+            flex: 1;
+            padding: 20px;
+            margin-left: 200px; /* Adjust content area margin to accommodate the fixed sidebar */
         }
 
         #sidebar a {
@@ -37,7 +46,6 @@
             display: flex;
             align-items: center;
         }
-
         #sidebar i {
             margin-right: 10px;
         }
@@ -60,16 +68,12 @@
             padding: 20px;
         }
 
-        .alert {
-            /* Your alert styles here */
-        }
-
         #main-entry-table-container {
             margin-top: 20px;
         }
 
         #main-entry-table {
-            width: 100%;
+            width: 150%;
             border-collapse: collapse;
             margin-top: 10px;
         }
@@ -84,6 +88,10 @@
         #main-entry-table th {
             background-color: #3498db;
             color: #fff;
+        }
+
+        #main-entry-table tbody tr:hover {
+            background-color: #f5f5f5;
         }
 
         .more-info-button {
@@ -144,11 +152,24 @@
         .modal-body {
             padding: 2px 16px;
         }
+
+        #search-bar {
+            margin-top: 20px;
+        }
+        #search-bar label {
+            margin-right: 10px;
+        }
+        #search-bar input {
+            margin-right: 10px;
+        }
+        #search-bar button {
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
-
+    <div id="dashboard">
     <div id="dashboard">
         <div id="sidebar">
             <div class="welcome-message" id="welcome-message"></div>
@@ -166,92 +187,119 @@
         <div id="content">
             <div class="alert" id="alert-message"></div>
 
+            <div id="search-bar">
+                <label for="product-search">Search Product:</label>
+                <input type="text" id="product-search" placeholder="Enter product name">
+                <button onclick="searchProduct()">Search</button>
+            </div>
+
             <div id="main-entry-table-container">
-                <h3>Main Entry Information</h3>
+                <h3>Sales Information</h3>
                 <table id="main-entry-table">
                     <thead>
                         <tr>
                             <th>Product Name</th>
-                            <th>Category</th>
-                            <th>Total Quantity</th>
-                            <th>Quantity Description</th>
+                            <th>Total Quantity Sold</th>
+                            <th>Total Price</th>
+                            <th>Sale Date</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="main-entry-table-body">
-                        <!-- Main entry data will be dynamically inserted here -->
+                        <!-- Sales data will be dynamically inserted here -->
                     </tbody>
                 </table>
-            </div>
-
-            <div id="more-info-buttons">
-                <!-- More Info buttons will be dynamically inserted here -->
             </div>
 
             <div id="detailed-entries-modal" class="modal">
                 <div class="modal-content">
                     <div class="modal-header">
                         <span class="close" onclick="closeModal()">&times;</span>
-                        <h2>Detailed Entries</h2>
+                        <h2>Detailed info on Sale</h2>
                     </div>
                     <div class="modal-body" id="modal-body-content">
-                        <!-- Detailed entry data will be dynamically inserted here -->
+                        <!-- Detailed sale data will be dynamically inserted here -->
                     </div>
                 </div>
             </div>
 
             <script>
-                document.addEventListener("DOMContentLoaded", function () {
-            // Function to parse URL parameters
-            function getParameterByName(name, url) {
-                if (!url) url = window.location.href;
-                name = name.replace(/[\[\]]/g, "\\$&");
-                var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-                    results = regex.exec(url);
-                if (!results) return null;
-                if (!results[2]) return "";
-                return decodeURIComponent(results[2].replace(/\+/g, " "));
-            }
+                let salesData;
 
-            // Fetch sales data from URL parameters
-            var salesDataJson = getParameterByName("sales_data");
-            var salesData = JSON.parse(salesDataJson);
+                function viewSales() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const salesDataParam = urlParams.get('sales_data');
 
-            // Get the sales container element
-            var salesContainer = document.getElementById("sales-container");
-
-            // Check if sales data is available
-            if (salesData && salesData.length > 0) {
-                // Create a table to display sales data
-                var table = document.createElement("table");
-
-                // Create table header
-                var headerRow = table.insertRow(0);
-                for (var key in salesData[0]) {
-                    var th = document.createElement("th");
-                    th.innerHTML = key;
-                    headerRow.appendChild(th);
-                }
-
-                // Create table rows with sales data
-                for (var i = 0; i < salesData.length; i++) {
-                    var row = table.insertRow(i + 1);
-                    for (var key in salesData[i]) {
-                        var cell = row.insertCell(-1);
-                        cell.innerHTML = salesData[i][key];
+                    if (salesDataParam) {
+                        try {
+                            salesData = JSON.parse(decodeURIComponent(salesDataParam));
+                            displaySalesData(salesData);
+                            addMoreInfoButtons(salesData);
+                        } catch (error) {
+                            showAlert('Error parsing sales data: ' + error.message);
+                        }
+                    } else {
+                        showAlert('No sales data available.');
                     }
                 }
 
-                // Append the table to the sales container
-                salesContainer.appendChild(table);
-            } else {
-                // Display a message if no sales data is available
-                salesContainer.innerHTML = "No sales data available.";
-            }
-            });
+                function displaySalesData(salesData, searchTerm) {
+                    var tableBody = document.querySelector('#main-entry-table-body');
+                    tableBody.innerHTML = '';
 
-                
+                    salesData.forEach(function (sale) {
+                        if (!searchTerm || sale.product_name.toLowerCase().includes(searchTerm.toLowerCase())) {
+                            var row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${sale.product_name}</td>
+                                <td>${sale.quantity_sold}</td>
+                                <td>${sale.total_price}</td>
+                                <td>${sale.sale_date}</td>
+                                <td><button class="more-info-button" onclick="showDetailedEntries(${sale.sale_id})">More Info</button></td>
+                            `;
+                            tableBody.appendChild(row);
+                        }
+                    });
+                }
+
+                function addMoreInfoButtons(salesData) {
+                    // Additional info buttons for each sale (if needed)
+                }
+
+                function showDetailedEntries(saleId) {
+                    const detailedSale = salesData.find(function (sale) {
+                        return sale.sale_id === saleId;
+                    });
+
+                    var modalBody = document.querySelector('#modal-body-content');
+                    modalBody.innerHTML = '';
+
+                    var row = document.createElement('div');
+                    row.innerHTML = `
+                        <p>Product Name: ${detailedSale.product_name}</p>
+                        <p>Quantity Sold: ${detailedSale.quantity_sold}</p>
+                        <p>Total Price: ${detailedSale.total_price}</p>
+                        <p>Sale Date: ${detailedSale.sale_date}</p>
+                    `;
+                    modalBody.appendChild(row);
+
+                    document.getElementById('detailed-entries-modal').style.display = 'block';
+                }
+
+                function closeModal() {
+                    document.getElementById('detailed-entries-modal').style.display = 'none';
+                }
+
+                document.addEventListener('DOMContentLoaded', function () {
+                    viewSales();
+                });
+
+                function searchProduct() {
+                    var searchInput = document.getElementById('product-search').value;
+                    displaySalesData(salesData, searchInput);
+                }
             </script>
+
         </div>
     </div>
 

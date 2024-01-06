@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+    <style>
+      body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+}
+
+#dashboard {
+    display: flex;
+    height: 100vh;
+}
+
+#sidebar {
+    width: 150px;
+    background-color: #333;
+    color: #fff;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    position: fixed;
+    height: 100%;
+}
+
+#content {
+    flex: 1;
+    padding: 20px;
+    margin-left: 200px;
+}
+
+#sidebar a {
+    color: #fff;
+    text-decoration: none;
+    margin-bottom: 15px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+#sidebar i {
+    margin-right: 10px;
+}
+
+#sidebar a:not(:last-child) {
+    margin-bottom: 60px;
+}
+
+#notification-container {
+    margin-top: 20px;
+}
+
+.notification {
+    background-color: #f2f2f2;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+#notification-options {
+    margin-top: 20px;
+}
+
+label {
+    margin-right: 10px;
+}
+
+#email-checkbox,
+#whatsapp-checkbox {
+    margin-bottom: 10px;
+}
+
+#save-preferences {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    cursor: pointer;
+}
+  /* Your existing CSS styles here */
+    </style>
+</head>
+
+<body>
+    <div id="dashboard">
+        <div id="sidebar">
+            <a href="viewsales.html"><i class="fas fa-chart-line"></i> View Sales</a>
+            <a href="notifications.html"><i class="fas fa-bell"></i> Notifications</a>
+            <!-- Add other sidebar links as needed -->
+        </div>
+
+        <div id="content">
+            <div id="notification-container">
+                <h2>Notifications</h2>
+                <div id="notifications"></div>
+            </div>
+
+            <div id="notification-options">
+                <h2>Notification Preferences</h2>
+                <label for="email-checkbox">
+                    <input type="checkbox" id="email-checkbox"> Receive Email Notifications
+                </label>
+                <br>
+                <label for="whatsapp-checkbox">
+                    <input type="checkbox" id="whatsapp-checkbox"> Receive WhatsApp Notifications
+                </label>
+                <br>
+                <button id="save-preferences" onclick="savePreferences()">Save Preferences</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+         // Placeholder function for saving preferences (implement as needed)
+    function savePreferences() {
+        alert("Preferences saved!");
+    }
+
+    // Function to display notifications
+    function displayNotifications() {
+        var notificationsDiv = document.getElementById('notifications');
+
+        // Check if the variable is defined
+        if (typeof latestNotifications !== 'undefined') {
+            for (var i = 0; i < latestNotifications.length; i++) {
+                var notificationDiv = document.createElement('div');
+                notificationDiv.className = 'notification';
+                notificationDiv.innerHTML = '<h3>' + latestNotifications[i]['subject'] + '</h3>' +
+                    '<p>' + latestNotifications[i]['message'] + '</p>';
+                notificationsDiv.appendChild(notificationDiv);
+            }
+        }
+    }
+
+    // Call the displayNotifications function when the page loads
+    window.onload = displayNotifications;
+
+
+    </script>
+</body>
+
+</html>
+
