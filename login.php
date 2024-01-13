@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $rememberMe = isset($_POST['remember-me']);
 
     if (empty($username) || empty($password)) {
-        echo "Username and password are required.";
+        header("Location: login.html?message=Username%20and%20password%20are%20required.&type=error");
         exit();
     }
 
@@ -15,37 +15,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo = new PDO("mysql:host={$databaseConfig['host']};dbname={$databaseConfig['dbname']}", $databaseConfig['user'], $databaseConfig['password']);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        $stmt = $pdo->prepare("SELECT user_id, username, role, store_name, password_hash, remember_token FROM users WHERE username = ?");
+        // Perform a LEFT JOIN to retrieve store information for the user
+        $stmt = $pdo->prepare("SELECT u.user_id, u.username, u.role, u.store_id, s.store_name, s.location_name, u.comp_staff, u.password_hash, u.remember_token FROM users u LEFT JOIN stores s ON u.store_id = s.store_id WHERE u.username = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['password_hash'])) {
-            // Login successful
+            // Check if the user is allowed to login based on their role
+            if ($user['role'] === 'owner' || ($user['role'] === 'staff' && $user['comp_staff'] == 1)) {
+                // Start the session
+                session_start();
 
-            // Generate a new token and update the database
-            $token = bin2hex(random_bytes(16)); // Generate a random token
-            $expiryTime = $rememberMe ? time() + (30 * 24 * 60 * 60) : 0; // Token expires in 30 days if "Remember me" is checked
-            $pdo->prepare("UPDATE users SET remember_token = ?, token_expiry = ? WHERE user_id = ?")->execute([$token, $expiryTime, $user['user_id']]);
+                // Store user information in session variables
+                $_SESSION['user_id'] = $user['user_id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = $user['role'];
+                $_SESSION['comp_staff'] = $user['comp_staff'];
 
-            // Set a cookie if "Remember me" is checked
-            if ($rememberMe) {
-                setcookie('remember_token', $token, $expiryTime, '/'); // Cookie expires in 30 days
+                // If the user is an owner, store additional information in session
+                if ($user['role'] === 'owner') {
+                    $_SESSION['store_name'] = $user['store_name'];
+                    $_SESSION['location_name'] = $user['location_name'];
+                }
+
+                // Redirect to home.html
+                header("Location: home.html");
+                exit();
             } else {
-                // Clear any existing remember token
-                setcookie('remember_token', '', time() - 3600, '/');
+                header("Location: login.html?message=Access%20denied.%20Only%20comp%20staff%20can%20log%20in.&type=error");
+                exit();
             }
-
-            // Redirect to home.html with user details as URL parameters
-            header("Location: home.html?user_id={$user['user_id']}&username={$user['username']}&role={$user['role']}&store_name={$user['store_name']}");
-            exit();
         } else {
-            echo "Invalid username or password.";
+            header("Location: login.html?message=Invalid%20username%20or%20password.&type=error");
             exit();
         }
     } catch (PDOException $e) {
         // Log the error details
         error_log("Database Error: " . $e->getMessage(), 0);
-        echo "An error occurred. Please try again later.";
+        header("Location: login.html?message=An%20error%20occurred.%20Please%20try%20again%20later.&type=error");
+        exit();
     }
 }
 ?>
